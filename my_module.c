@@ -33,6 +33,15 @@ static int read_period = HZ;       // 1 second delay
 /* ---------------- */
 /* File operations */
 /* ---------------- */
+static int my_release(struct inode *inode, struct file *file) {
+  printk("Closing my_module\n");
+  return 0;
+}
+
+static int my_open(struct inode *i, struct file *f) {
+  printk("Opening my_module\n");
+  return 0;
+}
 
 ssize_t my_read(struct file *file, char __user *buf, size_t cnt, loff_t *off) {
   int to_copy = cnt > 8 ? 8 : cnt;
@@ -62,6 +71,8 @@ static ssize_t my_write(struct file *file, const char __user *buf, size_t cnt,
 static struct file_operations my_fops = {
     .read = my_read,
     .write = my_write,
+    .open = my_open,
+    .release = my_release,
 };
 
 static void work_function(struct work_struct *work) {
