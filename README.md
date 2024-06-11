@@ -36,6 +36,7 @@ Se observa en el ejemplo que en la entrada de /dev/sda son controlados por el mi
 
 ### Crear el Modulo
 Se crea un archivo my_module.c con el codigo fuente y un archivo Makefile para compilarlo.
+
 ![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/6b1555b4-c5b5-4a5f-ade8-c8978d2cd83f)
 
 Para cargar el modulo se usa el comando insmod *.ko .
@@ -49,6 +50,10 @@ El modulo al cargarse registra un dispositivo llamado my_module con un numero ma
 ![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/459a07f8-9439-4cdd-ba94-a1d6a8e46416)
 
 Para eliminar el modulo se usa el comando rmmod:
+
 ![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/318eb8b0-b089-463f-b347-ce42893ccfe3)
 
+### Demos
+- [Demo 2 Con Explicacion]()
+- [Demo 1](https://drive.google.com/file/d/1dYLAVaglvw03ymg3qfwNMQR9RRIIWmg3/view?usp=sharing)
 
