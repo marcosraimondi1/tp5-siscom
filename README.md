@@ -16,3 +16,39 @@ Un bus driver es un componente de hardware o software que gestiona y controla el
 
 ### Device Controller
  Un device controller es un componente de hardware o software que controla las operaciones de un dispositivo específico. Por ejemplo, en el contexto de almacenamiento de datos, un controlador de dispositivo puede ser responsable de controlar el acceso y la transferencia de datos hacia y desde una unidad de disco. En resumen, los controladores de dispositivos supervisan y coordinan las operaciones del hardware para garantizar un funcionamiento adecuado.
+
+### Tipos de Dispositivos
+Los dispositivos se dividen en dos tipos: dispositivos de caracteres y dispositivos de bloques. La diferencia es que los dispositivos de bloque tienen un búfer para solicitudes, por lo que pueden elegir el mejor orden en el que responder a las solicitudes. Esto es importante en el caso de dispositivos de almacenamiento, donde es más rápido leer o escribir sectores que están cerca uno del otro, en lugar de los que están más separados. Otra diferencia es que los dispositivos de bloque solo pueden aceptar entrada y devolver salida en bloques (cuyo tamaño puede variar según el dispositivo), mientras que los dispositivos de caracteres pueden usar tantos o tan pocos bytes como deseen. La mayoría de los dispositivos son de caracteres, porque no necesitan este tipo de almacenamiento en búfer y no operan con un tamaño de bloque fijo.
+
+Para saber si un archivo de dispositivo es para un dispositivo de bloque o de caracteres, se puede ver el primer carácter en la salida de ls -l. Si es 'b', entonces es un dispositivo de bloque, y si es 'c', entonces es un dispositivo de caracteres.
+
+Ejemplo de salida de ls -l /dev:
+
+![image](https://github.com/marcosraimondi1/tp4-siscom/assets/69517496/fa90e6b8-e231-4721-a088-5dac381bac02)
+
+Se puede observar que el dispositivo /dev/sda y sus particiones son dispositivos de bloque. Corresponde al disco de estado solido de la PC y sus respectivas particiones.
+
+Los archivos /dev/tty en Linux son dispositivos de caracteres que representan las terminales del sistema y proporcionan un medio para interactuar con ellas desde programas en el sistema.
+
+Las dos columnas de numeros separadas por coma corresponde al número mayor y numero menor del dispositivo. El número mayor indica qué controlador se usa para acceder al hardware. A cada controlador se le asigna un número mayor único; todos los archivos de dispositivo con el mismo número mayor son controlados por el mismo controlador. El número menor es utilizado por el controlador para distinguir entre el hardware variado que controla. 
+
+Se observa en el ejemplo que en la entrada de /dev/sda son controlados por el mismo driver ya que tienen el mismo numero mayor 8. Ese driver distingue lo que son las particiones por el numero menor de cada una.
+
+### Crear el Modulo
+Se crea un archivo my_module.c con el codigo fuente y un archivo Makefile para compilarlo.
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/6b1555b4-c5b5-4a5f-ade8-c8978d2cd83f)
+
+Para cargar el modulo se usa el comando insmod *.ko .
+
+El modulo al cargarse registra un dispositivo llamado my_module con un numero major asignado dinamicamente segun esten disponibles.
+
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/65dc6101-45a2-4399-8cec-c996c5ae7198)
+
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/c45f844e-5e8e-48cd-bdc1-0f53bd947e5c)
+
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/459a07f8-9439-4cdd-ba94-a1d6a8e46416)
+
+Para eliminar el modulo se usa el comando rmmod:
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/318eb8b0-b089-463f-b347-ce42893ccfe3)
+
+
