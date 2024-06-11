@@ -111,7 +111,7 @@ static struct file_operations my_fops = {
 };
 
 /**
- * @brief Work function for delayed work
+ * @brief Work function for delayed work. Periodically read gpios.
  * @param work Pointer to the work structure
  */
 static void work_function(struct work_struct *work) {
@@ -235,14 +235,18 @@ void __exit my_exit(void) {
   // Cancel the delayed work and destroy the workqueue
   cancel_delayed_work_sync(&my_work);
   destroy_workqueue(my_wq);
-
+  
+  // Unregister device
   cdev_del(&c_dev);
   device_destroy(cl, first);
   class_destroy(cl);
   unregister_chrdev_region(first, 1);
+  
+  // free gpios
   gpio_free(IO_A);
   gpio_free(IO_B);
 }
 
+// register functions
 module_init(my_init);
 module_exit(my_exit);
