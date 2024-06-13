@@ -33,6 +33,21 @@ Los archivos /dev/tty en Linux son dispositivos de caracteres que representan la
 Las dos columnas de numeros separadas por coma corresponde al número mayor y numero menor del dispositivo. El número mayor indica qué controlador se usa para acceder al hardware. A cada controlador se le asigna un número mayor único; todos los archivos de dispositivo con el mismo número mayor son controlados por el mismo controlador. El número menor es utilizado por el controlador para distinguir entre el hardware variado que controla. 
 
 Se observa en el ejemplo que en la entrada de /dev/sda son controlados por el mismo driver ya que tienen el mismo numero mayor 8. Ese driver distingue lo que son las particiones por el numero menor de cada una.
+## Implementación
+### Dispositivo utilizado y SO
+En el desarrollo del Tp se opto por el uso de una placa RaspberryPi Zero 2. La misma es ideal para el desarollo y dispone de una gran variedad de funcionalidades y pines:
+
+![Raspberrypi Zero pinout](https://github.com/Giuli2803/tp5-siscom/assets/66461191/528c8b29-4f8e-49aa-bdb0-a7f9a5a6091f)
+
+Esta placa dispone de conexión wifi, bluetooth y varios pines. Para la implementación fue muy util la preconfiguración de red wifi que se puede realizar al momento de la carga del sistema operativo, esto puso a disposición y nos permitió acceder mediante SSH (o Secure Shell) a la terminal de la placa, esto no facilito la el manejo remoto de la misma ya que no se disponia de un monitor ni de adaptadores para conectar la placa y manipularla directamente.
+
+![Config_Raspberry_imager](https://github.com/Giuli2803/tp5-siscom/assets/66461191/380c55b8-02f4-4bb4-957d-40de0a67b12e)
+
+La placa fue cargada con el sistema operativo que pone a disposición el fabricante en la pagina oficial, el "Raspberry Pi OS with desktop" de 64-bits y con la version de kernel 6.6.
+
+![Raspberry](https://github.com/Giuli2803/tp5-siscom/assets/66461191/d2d1d328-bd32-4104-97cb-0a3e9a476f98)
+
+Una vez obtenida la conexión con la placa se pudieron enviar archivos mediante ssh para poder ejecutar todo lo necesario para el desarrollo del tp. En la proxima sección se empieza el despliegue del codigo sobre la placa de forma remota.
 
 ### Crear el Modulo
 Se crea un archivo my_module.c con el codigo fuente y un archivo Makefile para compilarlo.
@@ -54,6 +69,8 @@ Para eliminar el modulo se usa el comando rmmod:
 ![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/318eb8b0-b089-463f-b347-ce42893ccfe3)
 
 ### Demos
-- [Demo 2 Con Explicacion]()
+Se pone a disposición 2 videos realizados durante el desarrollo del tp, los cuales explican y muestran el desarrollo realizado por parte del equipo. Tambien se adjunta un video muy interesante que muestra detalles mas a fondo a la hora de armar un driver, el mismo fue de mucha utilidad para tomar referencias durante el desarrollo.
+- [Demo 2 Con Explicacion](https://drive.google.com/file/d/1pB57ipW9DzwsvEO1VDaYb4qELzmfnMeI/view?usp=sharing)
 - [Demo 1](https://drive.google.com/file/d/1dYLAVaglvw03ymg3qfwNMQR9RRIIWmg3/view?usp=sharing)
+- [Video de referencia](https://www.youtube.com/watch?v=xk0xdN2SzV0&t=1167s)
 
