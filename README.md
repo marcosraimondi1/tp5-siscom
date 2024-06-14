@@ -57,6 +57,182 @@ Una vez obtenida la conexión con la placa se pudieron enviar archivos mediante 
 
 Para acceder y controlar la Raspberry Pi, primero se instaló Raspbian en una tarjeta microSD y se habilitó SSH creando un archivo vacío llamado `ssh` en la partición de arranque. Luego, se conectó la Raspberry Pi a la red WiFi provista por un celular. Para encontrar la dirección IP asignada a la placa, se verificó en la configuración del punto de acceso del celular. Una vez obtenida la dirección IP, se procedió a establecer una conexión SSH desde la computadora. Para mejorar la seguridad, se cambió la contraseña por defecto y se utilizó el usuario `neuronas`.
 
+### Driver Lifecycle
+
+El driver se inicializa en el metodo `my_init` que se ejecuta cuando se carga el modulo con `insmod`:
+
+```c
+int __init my_init(void) {
+  printk("Hello World - GPIO\n");
+
+  int status;
+  int ret;
+  struct device *dev_ret;
+
+  // request GPIO pins
+
+  status = gpio_request(IO_A, "IO_A");
+  if (status != 0) {
+    printk("Error requesting IO_A\n");
+    return status;
+  }
+  // ...
+
+  // set directions
+
+  status = gpio_direction_input(IO_A);
+  if (status != 0) {
+    printk("Error setting direction input IO_A\n");
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return status;
+  }
+
+  // ...
+
+  // register char device
+
+  if ((ret = alloc_chrdev_region(&first, 0, 1, "my_module")) < 0) {
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return ret;
+  }
+
+  if (IS_ERR(cl = class_create(THIS_MODULE, "my_module"))) {
+    unregister_chrdev_region(first, 1);
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return PTR_ERR(cl);
+  }
+
+  if (IS_ERR(dev_ret = device_create(cl, NULL, first, NULL, "my_module"))) {
+    class_destroy(cl);
+    unregister_chrdev_region(first, 1);
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return PTR_ERR(dev_ret);
+  }
+
+  cdev_init(&c_dev, &my_fops);
+  if ((ret = cdev_add(&c_dev, first, 1)) < 0) {
+    device_destroy(cl, first);
+    class_destroy(cl);
+    unregister_chrdev_region(first, 1);
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return ret;
+  }
+
+  // Create workqueue
+  my_wq = create_singlethread_workqueue("my_wq");
+  if (!my_wq) {
+    cdev_del(&c_dev);
+    device_destroy(cl, first);
+    class_destroy(cl);
+    unregister_chrdev_region(first, 1);
+    gpio_free(IO_A);
+    gpio_free(IO_B);
+    return -ENOMEM;
+  }
+
+  // Initialize delayed work
+  INIT_DELAYED_WORK(&my_work, work_function);
+
+  // Queue the first work
+  queue_delayed_work(my_wq, &my_work, read_period);
+
+  return 0;
+}
+```
+Aqui se solicitan los pines GPIO, se configuran como entradas, se registra el dispositivo de caracter, se crea la workqueue y se inicializa el trabajo asincrono.
+
+El driver se libera en el metodo `my_exit` que se ejecuta cuando se descarga el modulo con `rmmod`:
+
+```c
+void __exit my_exit(void) {
+  printk("Goodbye! \n");
+
+  // Cancel the delayed work and destroy the workqueue
+  cancel_delayed_work_sync(&my_work);
+  destroy_workqueue(my_wq);
+  
+  // Unregister device
+  cdev_del(&c_dev);
+  device_destroy(cl, first);
+  class_destroy(cl);
+  unregister_chrdev_region(first, 1);
+  
+  // free gpios
+  gpio_free(IO_A);
+  gpio_free(IO_B);
+}
+```
+
+Aqui se cancela el trabajo asincrono y se destruye la workqueue, se desregistra el dispositivo, se destruye la clase y se libera el rango de numeros de dispositivo. Finalmente se liberan los pines GPIO.
+
+### Device Driver File Operations: Lectura y Escritura del Driver
+
+Se carga en la estructura `file_operations` las operaciones de lectura y escritura del driver:
+```c
+static struct file_operations my_fops = {
+    .read = my_read,
+    .write = my_write,
+    .open = my_open,
+    .release = my_release, 
+};
+```
+
+Para la escritura del driver, se implemente la siguiente operacion:
+
+```c
+static ssize_t my_write(struct file *file, const char __user *buf, size_t cnt,
+                        loff_t *off) {
+  u8 val;
+
+  if (cnt == 0)
+    return 0;
+
+  val = buf[0] - '0'; // convert ascii char to int
+
+  if (val == 0) {
+    chosen_pin = IO_A;
+  } else {
+    chosen_pin = IO_B;
+  }
+
+  printk("chosen GPIO: %d\n", chosen_pin - 512);
+
+  return cnt;
+}
+```
+
+Al escribir en el character device driver se selecciona el pin a utilizar, si el valor es 0 se selecciona el IO_A, si el valor es 1 se selecciona el IO_B.
+
+Para la lectura del driver, se implementa la siguiente operacion:
+
+```c
+ssize_t my_read(struct file *file, char __user *buf, size_t cnt, loff_t *off) {
+  int to_copy = cnt > 8 ? 8 : cnt;
+  return to_copy - copy_to_user(buf, last_value, to_copy);
+}
+```
+
+Al leer del character device driver se copia el valor de `last_value` al buffer de usuario. 
+Este valor se actualiza asincronamente cada 1 segundo, cuando se lee el driver se copia el ultimo valor leido del GPIO seleccionado.
+El worker thread se encarga de leer el valor del GPIO seleccionado y actualizar el valor de `last_value`:
+
+```c
+static void work_function(struct work_struct *work) {
+  u8 value;
+
+  value = gpio_get_value(chosen_pin);
+  snprintf(last_value, 8, "%d\n", value);
+
+  // Queue the work again to run after 1 second
+  queue_delayed_work(my_wq, &my_work, read_period);
+}
+```
+
 
 ### Crear el Modulo
 Se crea un archivo my_module.c con el codigo fuente y un archivo Makefile para compilarlo.
