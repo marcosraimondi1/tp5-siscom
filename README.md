@@ -33,13 +33,16 @@ Los archivos /dev/tty en Linux son dispositivos de caracteres que representan la
 Las dos columnas de numeros separadas por coma corresponde al número mayor y numero menor del dispositivo. El número mayor indica qué controlador se usa para acceder al hardware. A cada controlador se le asigna un número mayor único; todos los archivos de dispositivo con el mismo número mayor son controlados por el mismo controlador. El número menor es utilizado por el controlador para distinguir entre el hardware variado que controla. 
 
 Se observa en el ejemplo que en la entrada de /dev/sda son controlados por el mismo driver ya que tienen el mismo numero mayor 8. Ese driver distingue lo que son las particiones por el numero menor de cada una.
+
+![Bus Driver](https://github.com/AndyTaborda/tp5-siscom/assets/102503527/ce43ab99-0b04-4151-a0b1-1e7ef978df76)
+
 ## Implementación
 ### Dispositivo utilizado y SO
 En el desarrollo del Tp se opto por el uso de una placa RaspberryPi Zero 2. La misma es ideal para el desarollo y dispone de una gran variedad de funcionalidades y pines:
 
 ![Raspberrypi Zero pinout](https://github.com/Giuli2803/tp5-siscom/assets/66461191/528c8b29-4f8e-49aa-bdb0-a7f9a5a6091f)
 
-Esta placa dispone de conexión wifi, bluetooth y varios pines. Para la implementación fue muy util la preconfiguración de red wifi que se puede realizar al momento de la carga del sistema operativo, esto puso a disposición y nos permitió acceder mediante SSH (o Secure Shell) a la terminal de la placa, esto no facilito la el manejo remoto de la misma ya que no se disponia de un monitor ni de adaptadores para conectar la placa y manipularla directamente.
+Esta placa dispone de conexión wifi, bluetooth y varios pines. Para la implementación fue muy util la preconfiguración de red wifi que se puede realizar al momento de la carga del sistema operativo, esto puso a disposición y nos permitió acceder mediante SSH (o Secure Shell) a la terminal de la placa, esto nos facilito el manejo remoto de la misma ya que no se disponia de un monitor ni de adaptadores para conectar la placa y manipularla directamente.
 
 ![Config_Raspberry_imager](https://github.com/Giuli2803/tp5-siscom/assets/66461191/380c55b8-02f4-4bb4-957d-40de0a67b12e)
 
@@ -48,6 +51,12 @@ La placa fue cargada con el sistema operativo que pone a disposición el fabrica
 ![Raspberry](https://github.com/Giuli2803/tp5-siscom/assets/66461191/d2d1d328-bd32-4104-97cb-0a3e9a476f98)
 
 Una vez obtenida la conexión con la placa se pudieron enviar archivos mediante ssh para poder ejecutar todo lo necesario para el desarrollo del tp. En la proxima sección se empieza el despliegue del codigo sobre la placa de forma remota.
+
+### Topología
+![1](https://github.com/AndyTaborda/tp5-siscom/assets/102503527/e0225075-77e7-4b78-be50-f8f779517f87)
+
+Para acceder y controlar la Raspberry Pi, primero se instaló Raspbian en una tarjeta microSD y se habilitó SSH creando un archivo vacío llamado `ssh` en la partición de arranque. Luego, se conectó la Raspberry Pi a la red WiFi provista por un celular. Para encontrar la dirección IP asignada a la placa, se verificó en la configuración del punto de acceso del celular. Una vez obtenida la dirección IP, se procedió a establecer una conexión SSH desde la computadora. Para mejorar la seguridad, se cambió la contraseña por defecto y se utilizó el usuario `neuronas`.
+
 
 ### Crear el Modulo
 Se crea un archivo my_module.c con el codigo fuente y un archivo Makefile para compilarlo.
