@@ -42,6 +42,8 @@ En el desarrollo del Tp se opto por el uso de una placa RaspberryPi Zero 2. La m
 
 ![Raspberrypi Zero pinout](https://github.com/Giuli2803/tp5-siscom/assets/66461191/528c8b29-4f8e-49aa-bdb0-a7f9a5a6091f)
 
+Para observar el numero que corresponde a un GPIO especifico se puede utilizar el comando: `cat /sys/kernel/debug/gpio` que muestra ese mapeo. Basicamente se tiene que sumar 512 al numero de GPIO que se quiere usar. (Ej. GPIO26 -> 538 en el codigo de C).
+
 Esta placa dispone de conexión wifi, bluetooth y varios pines. Para la implementación fue muy util la preconfiguración de red wifi que se puede realizar al momento de la carga del sistema operativo, esto puso a disposición y nos permitió acceder mediante SSH (o Secure Shell) a la terminal de la placa, esto nos facilito el manejo remoto de la misma ya que no se disponia de un monitor ni de adaptadores para conectar la placa y manipularla directamente.
 
 ![Config_Raspberry_imager](https://github.com/Giuli2803/tp5-siscom/assets/66461191/380c55b8-02f4-4bb4-957d-40de0a67b12e)
@@ -252,6 +254,21 @@ El modulo al cargarse registra un dispositivo llamado my_module con un numero ma
 Para eliminar el modulo se usa el comando rmmod:
 
 ![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/318eb8b0-b089-463f-b347-ce42893ccfe3)
+
+
+### Aplicacion de Usuario
+La aplicacion de usuario se crea en python, se crean 2 scripts:
+1. El primero corre en la raspberry y le el character device para obtener y registrar los valores de los GPIO indicado por el usuario. Estos valores se guardan en un archivo .csv con un timestamp asociado al momento de lectura.
+2. El segundo corre en la computadora principal que se conecta por ssh, y se encarga de generar los graficos a partir del archivo .csv obtenido en el script anterior. Esto se hace asi ya que no se contaba con una interfaz grafica en la raspberry pi porque estabamos conectados por ssh.
+
+Para transferir el archivo .csv desde la raspberry pi hacia la computadora principal se utiliza el comando `scp` (secure copy) que lo copia a traves de ssh:
+```sh
+scp neuronas@<raspi_ip>:<path_to_csv> <local destination directory>
+```
+
+Un ejemplo del grafico generado se puede observar a continuacion:
+![image](https://github.com/marcosraimondi1/tp5-siscom/assets/69517496/d3d91599-7fba-448d-977f-35e13988d1dd)
+
 
 ### Demos
 Se pone a disposición 2 videos realizados durante el desarrollo del tp, los cuales explican y muestran el desarrollo realizado por parte del equipo. Tambien se adjunta un video muy interesante que muestra detalles mas a fondo a la hora de armar un driver, el mismo fue de mucha utilidad para tomar referencias durante el desarrollo.
